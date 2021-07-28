@@ -1,0 +1,88 @@
+# Changing this effect the base path and how resources are displayed in the console.
+service: dnsautomation
+package:
+  exclude:
+    - .env
+
+custom:
+  defaultStage: dev
+  bucket: ${self:service}-backups-${self:provider.stage}
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  stage: ${opt:stage, self:custom.defaultStage}
+  memorySize: 128
+  timeout: 120
+  profile: CustomerServices # CLI profile. Remove if this is your default profile.
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: ServerlessDeploymentBucket
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: S3BucketBackups
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: ServerlessDeploymentBucket
+                - "/*"
+        - Effect: Allow # Allows writing, reading and deleting secrets
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: S3BucketBackups
+                - "/*"
+        - Effect: Allow
+          Action:
+            - route53:GetHostedZone
+            - route53:ListHostedZones
+            - route53:ListResourceRecordSets
+            - route53:ListHostedZonesByName
+          Resource: "*"
+
+  environment:
+    # Uses params first, then the default stage.
+    AWS_PROFILE: CustomerServices # The AWS SDK always uses the default profile unless set as a env variable.
+    STAGE: ${self:provider.stage}
+    BUCKET: ${self:custom.bucket}
+
+functions:
+  runSchedule:
+    handler: lambda/functions/Backup/index.runSchedule
+    events:
+      - schedule: rate(1 day)
+resources:
+  Resources:
+    # Primary bucket for hosting the website.
+    S3BucketBackups:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-backups-${self:provider.stage}
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteContentAfter60Days
+              Status: "Enabled"
+              ExpirationInDays: 60
