@@ -1,8 +1,8 @@
 # Changing this effect the base path and how resources are displayed in the console.
 service: dnsautomation
 package:
-  exclude:
-    - .env
+  patterns:
+    - "!.env"
 
 custom:
   defaultStage: dev
@@ -10,12 +10,12 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   lambdaHashingVersion: 20201221
   stage: ${opt:stage, self:custom.defaultStage}
   memorySize: 128
   timeout: 120
-  profile: CustomerServices # CLI profile. Remove if this is your default profile.
+  profile: CoviCustomerServices # CLI profile. Remove if this is your default profile.
   iam:
     role:
       statements:

@@ -5,9 +5,9 @@
     "author": "Jack Musick",
     "license": "ISC",
     "devDependencies": {
-        "serverless": "^2.52.1"
+        "serverless": "^3.34.0"
     },
     "dependencies": {
-        "aws-sdk": "^2.955.0"
+        "aws-sdk": "^2.1457.0"
     }
 }

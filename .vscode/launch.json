@@ -10,9 +10,7 @@
                 "invoke",
                 "local",
                 "-f",
-                "runSchedule",
-                "--path",
-                "lambda/events/data.json"
+                "runSchedule"
             ],
             "skipFiles": [
                 "${workspaceRoot}/node_modules/**",
